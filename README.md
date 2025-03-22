@@ -74,133 +74,13 @@ The implementation includes:
 ./gradlew runExample
 ```
 
-## Usage Example
-
-```java
-// Create a transaction
-Transaction tx = new Transaction("/path/to/table");
-
-// Add protocol action
-tx.addAction(new Protocol(1, 1));
-
-// Add table metadata
-tx.addAction(new Metadata("table1", "myTable", "parquet"));
-
-// Add data files
-long timestamp = System.currentTimeMillis();
-tx.addAction(new AddFile("data/part-00000.parquet", 1024, timestamp));
-tx.addAction(new AddFile("data/part-00001.parquet", 2048, timestamp));
-
-// Commit the transaction
-tx.commit();
-
-// Read the transaction log
-List<Action> actions = tx.readTransactionLog();
-```
-
-### Using Optimistic Transactions
-
-```java
-// Create an optimistic transaction
-OptimisticTransaction tx = new OptimisticTransaction("/path/to/table");
-
-// Record a file read for conflict detection
-tx.readFile("data/part-00000.parquet");
-
-// Add a new file
-long timestamp = System.currentTimeMillis();
-tx.addAction(new AddFile("data/part-00002.parquet", 1024, timestamp));
-
-// Commit with automatic conflict detection
-tx.commit();
-```
-
-### Automatic Retry
-
-```java
-try {
-    OptimisticTransaction.executeWithRetry(() -> {
-        // Transaction code here
-        OptimisticTransaction tx = new OptimisticTransaction("/path/to/table");
-        tx.readFile("data/part-00000.parquet");
-        tx.addAction(new AddFile("data/new-file.parquet", 1024, System.currentTimeMillis()));
-        tx.commit();
-        return true;
-    });
-} catch (IOException e) {
-    // Handle failure after max retries
-}
-```
-
-### Using Checkpoints
-
-```java
-// Create a DeltaLog instance
-DeltaLog deltaLog = DeltaLog.forTable("/path/to/table");
-
-// Create a checkpoint (happens automatically when needed)
-deltaLog.checkpoint();
-
-// Read the latest version with checkpoint support
-Snapshot snapshot = deltaLog.snapshot();
-
-// Get files from the snapshot
-List<AddFile> activeFiles = snapshot.getActiveFiles();
-```
-
-## Building a Fat JAR
-
-To create a JAR file with all dependencies included:
-
-```bash
-./gradlew fatJar
-```
-
-The JAR will be created in the `build/libs/` directory with the `-all` suffix.
-
-## Implementation Details
-
-### Transaction Log
-
-The Delta format stores all table changes in a transaction log, which is a sequence of JSON files in the `_delta_log` directory. Each transaction creates a new log file with a version number. The transaction log is the source of truth for the state of the table.
-
-### Conflict Detection
-
-Optimistic transactions detect conflicts by comparing the current state of the table with the state when the transaction started. Conflicts are detected based on the isolation level:
-
-- `SERIALIZABLE`: Conflicts if any files read by the transaction have been modified
-- `WRITE_SERIALIZABLE`: Conflicts only if files have been modified in a way that affects write operations
-
 ## Project Structure
 
 ```
 src/main/java/com/example/deltajava/
-├── actions/               # Action classes for the Delta log
-│   ├── Action.java        # Base interface for all actions
-│   ├── AddFile.java       # Adding files to the table
-│   ├── CommitInfo.java    # Commit metadata
-│   ├── Metadata.java      # Table metadata
-│   ├── Protocol.java      # Protocol versioning 
-│   └── RemoveFile.java    # Removing files from the table
 ├── util/
-│   ├── JsonUtil.java      # JSON serialization utilities
 │   ├── FileNames.java     # Delta file naming utilities
 │   ├── CsvUtil.java       # CSV processing utilities
 │   ├── ParquetUtil.java   # Parquet file handling
-│   ├── CheckpointUtil.java # Checkpoint creation and loading
-│   └── CheckpointMetadata.java # Metadata for checkpoints
-├── ConcurrentModificationException.java  # Exception for conflicts
-├── DeltaApp.java          # Simple demo application
-├── DeltaLog.java          # Core Delta log management
-├── DeltaTable.java        # Table operations interface
-├── OptimisticTransaction.java # Transaction with conflict detection 
-├── Snapshot.java          # Point-in-time view of the table
-├── Transaction.java       # Basic transaction implementation
-└── examples/
-    ├── DeltaTableExample.java # Table operations example
-    └── TransactionExample.java # Example with concurrent transactions
+├── DeltaTable.java        # Table operations example
 ```
-
-## License
-
-[Your License Information] 
