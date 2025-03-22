@@ -34,8 +34,23 @@ The implementation includes:
 
 ### Prerequisites
 
-- Java 11 or higher
-- Gradle for building (wrapper included)
+- Java 17
+- Gradle for building
+
+#### Install java 11
+   ```bash
+   brew install openjdk@17
+   ```
+
+#### Install Gradle (if not installed)
+   ```bash 
+   brew install gradle
+   ```
+   
+#### Generate gradle wrapper
+   ```bash 
+   gradle wrapper
+   ``` 
 
 ### Building
 
