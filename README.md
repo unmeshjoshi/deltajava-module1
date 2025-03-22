@@ -84,3 +84,7 @@ src/main/java/com/example/deltajava/
 │   ├── ParquetUtil.java   # Parquet file handling
 ├── DeltaTable.java        # Table operations example
 ```
+
+TODO:
+1. Try to pass the test ```testReadAllRecords()``` by implementing the missing pieces of code 
+2. Try to pass the test ```testConsecutiveInserts()``` by implementing the missing pieces of code
